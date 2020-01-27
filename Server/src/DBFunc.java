@@ -29,7 +29,6 @@ public class DBFunc {
 				ResultSet rs = this.state.executeQuery(query);
 				return rs;
 			}else{
-				
 				this.state.executeUpdate(query);
 				return null;
 			}
