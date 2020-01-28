@@ -6,6 +6,7 @@ import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.ArrayList;
 
 import org.json.JSONObject;
 
@@ -13,6 +14,7 @@ public class ConnectionHandler implements Runnable{
 	private Socket con;
 	private ServerSocket serverSocket;
 	private boolean isAlive = true;
+	private ArrayList<Game> games = new ArrayList<Game>();
 	
 	private JSONObject info;
     
@@ -56,6 +58,17 @@ public class ConnectionHandler implements Runnable{
 						ServerFunc.sendMsg(out, this.info);
 						break;
 						
+					case "CREATE_GAME":
+						this.info.put("protocol", "CREATE_GAME");
+						this.games.add(new Game(this.games.size(), AccountHandler.getNameFromHWID(response.getString("hwid")), in, out););
+						this.info.put("data", this.games.get(this.games.size()-1).getPlayers());
+						break;
+						
+					case "JOIN_GAME":
+						this.info.put("protocol", "JOIN_GAME");
+						this.games.get(response.getInt("data")).addPlayer(AccountHandler.getNameFromHWID(response.getString("hwid")), in, out);
+						this.info.put("data", this.games.get(response.getInt("data")).getPlayers());						
+						break;
 					default:
 						this.info.put("protocol", response.getString("protocl"));
 						this.info.put("data", "ERROR_UNSUPPORTED_PROTOCOL");
