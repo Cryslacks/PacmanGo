@@ -1,7 +1,7 @@
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public class AccountHandler{
+public class DatabaseHandler{
 	public static DBFunc db;
 	
 	public static boolean loginAccount(String username, String password, String hwid){
@@ -9,7 +9,7 @@ public class AccountHandler{
 		
 		try {
 			if(rs.next()){
-				AccountHandler.updateHwid(username, hwid);
+				DatabaseHandler.updateHwid(username, hwid);
 				return true;
 			}
 		} catch (SQLException e) {
@@ -40,10 +40,10 @@ public class AccountHandler{
 	}
 	
 	public static String getNameFromHWID(String hwid) {
-		ResultSet rs = db.query("SELECT username FROM users WHERE hwid = '"+hwid+"'");		
-		
+		ResultSet rs = db.query("SELECT username FROM users WHERE hwid = '"+hwid+"'");
 		try {
-			return rs.getString(0);
+			rs.absolute(1);
+			return rs.getString("username");
 		} catch (SQLException e) {
 			System.out.println("AccountHandler: ERR_SQL");
 			return "ERR_NO_USER";
