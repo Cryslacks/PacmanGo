@@ -13,7 +13,7 @@ public class AccountHandler{
 				return true;
 			}
 		} catch (SQLException e) {
-			System.out.println("SQL ERROR");
+			System.out.println("AccountHandler: ERR_SQL");
 		}
 		
 			return false;
@@ -26,17 +26,27 @@ public class AccountHandler{
 		try {
 			if(rs.next())
 				return false;
-//				System.out.println("USER ALREADY EXIST");
 			else {
 				db.query("INSERT INTO users (username, password, hwid) VALUES ('"+username+"', '"+password+"', '"+hwid+"')");
 				return true;
 			}
 		} catch (SQLException e) {
-			System.out.println("SQL ERROR");
+			System.out.println("AccountHandler: ERR_SQL");
 			return false;
 		}
 	}
 	public static void updateHwid(String username, String hwid){
 		db.query("UPDATE users SET hwid='"+hwid+"' WHERE username='"+username+"'");
+	}
+	
+	public static String getNameFromHWID(String hwid) {
+		ResultSet rs = db.query("SELECT username FROM users WHERE hwid = '"+hwid+"'");		
+		
+		try {
+			return rs.getString(0);
+		} catch (SQLException e) {
+			System.out.println("AccountHandler: ERR_SQL");
+			return "ERR_NO_USER";
+		}
 	}
 }

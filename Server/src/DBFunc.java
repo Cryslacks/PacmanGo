@@ -15,7 +15,7 @@ public class DBFunc {
 			Class.forName("com.mysql.jdbc.Driver");  
 			this.con = DriverManager.getConnection(url,uName,pWord);
 			state=con.createStatement();
-			System.out.println("we are connected");
+			System.out.println("DBFunc: We are connected to the database located at cryslacks.win:3306");
 		}catch(Exception e){
 			
 			System.out.println("Error connecting to DB");
