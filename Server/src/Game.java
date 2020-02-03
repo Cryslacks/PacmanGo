@@ -1,7 +1,11 @@
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
+
+import org.json.JSONObject;
 
 public class Game {
 	private ArrayList<Player> players;
@@ -9,13 +13,39 @@ public class Game {
 	private int gameId;
 	private GameState gameState;
 	private int collisionRadius = 2;
+	private ConnectionHandler ch;
 	
-	public Game(int gameId, String name, ObjectInputStream ois, ObjectOutputStream oos) {
+	public Game(ConnectionHandler ch, int gameId, String name, InputStream ois, OutputStream oos) {
+		this.ch = ch;
 		this.gameState = GameState.Lobby;
 		this.players = new ArrayList<Player>();
 		this.players.add(new Player(this, PlayerType.Pacman, name, ois, oos));
 		new Thread(this.players.get(this.players.size()-1)).start();
 		System.out.println("Game: Game started with gameId <"+gameId+">");
+	}
+	
+	public JSONObject startGame(Player p) {
+		JSONObject j = new JSONObject();
+		
+		if(p.getType() == PlayerType.Pacman) {
+			this.gameState = GameState.InProgress;
+			System.out.println("Game: Game has now started and is in progress");
+			j.put("protocol", "MAP_DATA");
+			// GET MAP DATA from DatabaseHandler.getMapData()
+			int mapData = 0;
+			j.put("data", mapData);		
+			
+			for(int i = 0; i < this.players.size(); i++) {
+				if(!this.players.get(i).getName().equals(p.getName())) {
+					this.players.get(i).sendMapData(j);
+				}
+			}
+		}else {
+			j.put("protocol", "START_GAME");
+			j.put("data", false);
+		}
+		
+		return j;
 	}
 	
 	public boolean isCompleted() {
@@ -34,30 +64,51 @@ public class Game {
 	}
 	
 	public Coordinate[] updatePlayer(Player p) {
-		Coordinate[] coords = new Coordinate[p.getUpdate().size()];
-		for(int i = 0; i < p.getUpdate().size(); i++) {
-			coords[i] = this.players.get(p.getUpdate().get(i)).getCoord();
-		}
+		int pId = this.players.indexOf(p);
+		ArrayList<Player> pList = p.getUpdate();
+
+		for(int i = 0; i < this.players.size(); i++)
+			if(pId != i)
+				this.players.get(i).addUpdate(p);
+			
+		if(pList.size() == 0)
+			return null;
+		
+		Coordinate[] coords = new Coordinate[pList.size()];
+
+		for(int i = 0; i < pList.size(); i++)
+			coords[i] = this.players.get(this.players.indexOf(pList.get(i))).getCoord();
 		
 		return coords;
 	}
 	
-	public boolean addPlayer(String name, ObjectInputStream ois, ObjectOutputStream oos) {
+	public boolean addPlayer(String name, InputStream ois, OutputStream oos) {
 		if(this.players.size() >= 5)
 			return false;
 		
 		this.players.add(new Player(this, PlayerType.Monster, name, ois, oos));
 		new Thread(this.players.get(this.players.size()-1)).start();
 		
-		for(int i = 0; i < this.players.size(); i++)
+		for(int i = 0; i < this.players.size()-1; i++)
 			players.get(i).lobbyUpdate(name, true);
 		
 		return true;
 	}
 	
 	public void removePlayer(Player p) {
+		boolean changeHost = p.getType() == PlayerType.Pacman;
 		String name = this.players.get(this.players.indexOf(p)).getName();
 		this.players.remove(p);
+		
+		if(this.players.size() == 0) {
+			this.ch.removeGame(this);
+			return;
+		}
+		
+		if(changeHost) {
+			this.players.get(0).changeType(PlayerType.Pacman);
+			System.out.println("Game: Host disconnected "+this.players.get(0).getName()+" is the new pacman");
+		}		
 		
 		for(int i = 0; i < this.players.size(); i++)
 			players.get(i).lobbyUpdate(name, false);

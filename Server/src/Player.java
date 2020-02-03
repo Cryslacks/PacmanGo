@@ -1,7 +1,9 @@
 <<<<<<< refs/remotes/origin/Efiila
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.net.SocketException;
 import java.util.ArrayList;
 
@@ -19,32 +21,25 @@ public class Player implements Runnable{
 	private String name;
 <<<<<<< refs/remotes/origin/Efiila
 	private Coordinate coord;
-=======
-	private Coordinate coords;
->>>>>>> Player object and value handling
-	private ObjectInputStream ois;
-	private ObjectOutputStream oos;
+	private InputStream is;
+	private OutputStream os;
 	private Game game;
 	private boolean isAlive;
-	private ArrayList<Integer> update;
+	private ArrayList<Player> update;
+	private byte[] readIn;
 	
 	
-<<<<<<< refs/remotes/origin/Efiila
-	public Player(Game game, PlayerType type, String name, ObjectInputStream ois, ObjectOutputStream oos){
+	public Player(Game game, PlayerType type, String name, InputStream is, OutputStream os){
+		System.out.println("Player: "+type.toString()+" joined with the name "+name);
 		this.type = type;
 		this.name = name;
 		this.coord = new Coordinate(0,0);
-=======
-	public Player(PlayerType type, String name, Coordinate coords, ObjectInputStream ois, ObjectOutputStream oos, Game game){
-		this.type = type;
-		this.name = name;
-		this.coords = coords;
->>>>>>> Player object and value handling
-		this.ois = ois;
-		this.oos = oos;
+		this.is = is;
+		this.os = os;
 		this.game = game;
 		this.isAlive = true;
-		this.update = new ArrayList<Integer>();
+		this.update = new ArrayList<Player>();
+		this.readIn = new byte[1024];
 	}
 	
 <<<<<<< refs/remotes/origin/Efiila
@@ -61,40 +56,41 @@ public class Player implements Runnable{
 >>>>>>> Player object and value handling
 	}
 	
-	public ArrayList<Integer> getUpdate(){
-		return this.update;
+	public ArrayList<Player> getUpdate(){
+		System.out.println("update: <"+this.name+"> "+this.update.size());
+		ArrayList<Player> p = this.update;
+		
+		this.update = new ArrayList<Player>();
+		return p;
 	}
-	public void addUpdate(int a){
-		this.update.add(a);
+	
+	public void addUpdate(Player p){
+		this.update.add(p);
 	}
 	
 <<<<<<< refs/remotes/origin/Efiila
 	public void lobbyUpdate(String name, boolean joined) {
-		try {
-			JSONObject j = new JSONObject();
-			if(joined)
-				j.put("protocol", "JOINED_LOBBY");
-			else
-				j.put("protocol", "LEFT_LOBBY");
-				
-			j.put("data", name);
-			this.oos.writeObject(j.toString());
-			this.oos.flush();
-		} catch (IOException e) {
-			System.out.println("Player: ERR_IO");
-			e.printStackTrace();
-		}
+		JSONObject j = new JSONObject();
+		if(joined)
+			j.put("protocol", "JOINED_LOBBY");
+		else
+			j.put("protocol", "LEFT_LOBBY");
+			
+		j.put("data", name);
+		ServerFunc.sendMsg(this.os, j);
 	}
 	
-=======
->>>>>>> Player object and value handling
-	public Coordinate[] update(){
-		
-		
-		
-		
+	public void sendMapData(JSONObject j) {
+		ServerFunc.sendMsg(this.os, j);
 	}
 
+	public void changeType(PlayerType pt) {
+		this.type = pt;
+	}
+	
+	public PlayerType getType() {
+		return this.type;
+	}
 
 
 	@Override
@@ -102,14 +98,45 @@ public class Player implements Runnable{
 		while(isAlive){
 <<<<<<< refs/remotes/origin/Efiila
 			try {
-					JSONObject response = new JSONObject((String)this.ois.readObject());
+				this.is.read(this.readIn);
+				
+				JSONObject response = new JSONObject(new String(this.readIn));
+				JSONObject j = new JSONObject();
+				
+				System.out.println("Player: Got input from '"+this.name+"': ");
+				if(ServerFunc.debugMode)
+					System.out.println("\t"+response.toString());
+				
+				if(response.getString("protocol").equals("START_GAME")) {
+					j = this.game.startGame(this);
+				}else if(response.getString("protocol").equals("UPDATE_POSITION")){
+					this.coord.setCoord((double)response.getJSONArray("data").get(0), (double)response.getJSONArray("data").get(1));
+
+					Coordinate[] c = this.game.updatePlayer(this);
+
+					if(c != null) {						
+						System.out.println("Player: <"+this.name+"> Getting updated coords:<"+c.length+">");
+						double[][] dd = new double[c.length][2];
+						for(int i = 0; i < c.length; i++)
+							dd[i] = c[i].getCoord();
+						
+						j.put("data", dd);
+					}else
+						j.put("data", "");
+
+					j.put("protocol", "POSITIONS");
+				}else {
+					j.put("protocol", "ERR");
+					j.put("data", "ERR_UNKNOWN_PROTOCOL");
+				}
+				
+
+				ServerFunc.sendMsg(this.os, j);
 			} catch (SocketException e) {
+				System.out.println("Player: Player "+this.name+" disconnected!");
 				this.game.removePlayer(this);
-				System.out.println("ERR_DISCONNECTED");
 				this.isAlive = false;
-			}  catch (JSONException e) {
-				e.printStackTrace();
-			} catch (ClassNotFoundException e) {
+			} catch (JSONException e) {
 				e.printStackTrace();
 			} catch (IOException e) {
 				e.printStackTrace();

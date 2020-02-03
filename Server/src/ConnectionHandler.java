@@ -1,18 +1,25 @@
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.OutputStream;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.Base64;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 public class ConnectionHandler implements Runnable{
 	private Socket con;
 	private ServerSocket serverSocket;
+	private byte[] readIn;
 	private boolean isAlive = true;
 	private ArrayList<Game> games = new ArrayList<Game>();
 	
@@ -20,8 +27,10 @@ public class ConnectionHandler implements Runnable{
     
 	public ConnectionHandler(int port){
 		try {
+			this.readIn = new byte[1024];
 			this.serverSocket = new ServerSocket(port);
-			AccountHandler.db = new DBFunc();
+			System.out.println("Handler: Server up and running at "+InetAddress.getByName(new URL("https://cryslacks.win").getHost()).getHostAddress()+":"+port);
+			DatabaseHandler.db = new DBFunc();
 			this.info = new JSONObject();
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -35,12 +44,13 @@ public class ConnectionHandler implements Runnable{
 				this.con = serverSocket.accept();
 				System.out.println("Handler: Got connection");
 
-				ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(this.con.getOutputStream()));
-				out.flush();
-				ObjectInputStream in = new ObjectInputStream(new BufferedInputStream(this.con.getInputStream()));
+				InputStream is = this.con.getInputStream();
+				OutputStream os = this.con.getOutputStream();
+				
+				int actualRead = is.read(this.readIn);			
 				
 				System.out.println("Handler: Getting request");
-				JSONObject response = new JSONObject((String)in.readObject());
+				JSONObject response = new JSONObject(new String(this.readIn));
 				if(ServerFunc.debugMode)
 					System.out.println("\t"+response);
 
@@ -48,51 +58,69 @@ public class ConnectionHandler implements Runnable{
 				switch(response.getString("protocol")) {
 					case "LOGIN_USER":
 						this.info.put("protocol", "LOGIN_USER");
-						this.info.put("data", AccountHandler.loginAccount(response.getJSONArray("data").getString(0), response.getJSONArray("data").getString(1), response.getJSONArray("data").getString(2)));
-						ServerFunc.sendMsg(out, this.info);
+						this.info.put("data", DatabaseHandler.loginAccount(response.getJSONArray("data").getString(0), response.getJSONArray("data").getString(1), response.getJSONArray("data").getString(2)));
 						break;
 						
 					case "CREATE_USER":
 						this.info.put("protocol", "CREATE_USER");
-						this.info.put("data", AccountHandler.createAccount(response.getJSONArray("data").getString(0), response.getJSONArray("data").getString(1), response.getJSONArray("data").getString(2)));
-						ServerFunc.sendMsg(out, this.info);
+						this.info.put("data", DatabaseHandler.createAccount(response.getJSONArray("data").getString(0), response.getJSONArray("data").getString(1), response.getJSONArray("data").getString(2)));
 						break;
 						
 					case "CREATE_GAME":
 						this.info.put("protocol", "CREATE_GAME");
-						this.games.add(new Game(this.games.size(), AccountHandler.getNameFromHWID(response.getString("hwid")), in, out););
+						this.games.add(new Game(this, this.games.size(), DatabaseHandler.getNameFromHWID(response.getString("hwid")), is, os));
 						this.info.put("data", this.games.get(this.games.size()-1).getPlayers());
 						break;
 						
 					case "JOIN_GAME":
 						this.info.put("protocol", "JOIN_GAME");
-						this.games.get(response.getInt("data")).addPlayer(AccountHandler.getNameFromHWID(response.getString("hwid")), in, out);
-						this.info.put("data", this.games.get(response.getInt("data")).getPlayers());						
+						try {
+							if(this.games.get(response.getInt("data")).addPlayer(DatabaseHandler.getNameFromHWID(response.getString("hwid")), is, os))
+								this.info.put("data", this.games.get(response.getInt("data")).getPlayers());						
+							else
+								this.info.put("data", "ERR_LOBBY_FULL");
+						}catch (IndexOutOfBoundsException e) {
+							this.info.put("data", "ERR_NO_EXIST");
+						}
 						break;
 					default:
-						this.info.put("protocol", response.getString("protocl"));
+						this.info.put("protocol", response.getString("protocol"));
 						this.info.put("data", "ERROR_UNSUPPORTED_PROTOCOL");
-						ServerFunc.sendMsg(out, this.info);
 						break;
 				}
-				if(ServerFunc.debugMode)
-					System.out.println("\t"+this.info.toString());
+				
+				ServerFunc.sendMsg(os, this.info);
+				
+				if(!(this.info.getString("protocol").equals("CREATE_GAME") ^ this.info.getString("protocol").equals("JOIN_GAME"))) {
+					System.out.println("Handler: Ending connection");
+					this.con.close();					
+				}
+				this.readIn = new byte[1024];
 				this.info = new JSONObject();
-
-				System.out.println("Handler: Ending connection");
-				this.con.close();
 			} catch (SocketException e) {
 				System.out.println("ERR_DISCONNECTED");
+			} catch (JSONException e) {
+				System.out.println("ERR_JSON_PARSE");
+				System.out.println("Handler: Tried to parse:");
+				System.out.println("\t'"+new String(this.readIn)+"'");
+				System.out.println("Handler: Ending connection");
+				try {
+					this.con.close();
+				} catch (IOException e1) {
+					System.out.println("Handler: ERR_IO_IN_JSON");
+					e1.printStackTrace();
+				}
 			} catch (IOException e) {
 				System.out.println("ERR_IO");
-				e.printStackTrace();
-			} catch (ClassNotFoundException e) {
-				System.out.println("ERR_CLASS");
 				e.printStackTrace();
 			}
 		}
 	}
 	
+	public void removeGame(Game g) {
+		System.out.println("Handler: Removing game <"+this.games.indexOf(g)+">");
+		this.games.remove(g);
+	}
 	
 	public void terminate() {
 		this.isAlive = false;
