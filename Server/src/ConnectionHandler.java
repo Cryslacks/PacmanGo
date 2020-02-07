@@ -29,6 +29,7 @@ public class ConnectionHandler implements Runnable{
 		try {
 			this.readIn = new byte[1024];
 			this.serverSocket = new ServerSocket(port);
+			
 			System.out.println("Handler: Server up and running at "+InetAddress.getByName(new URL("https://cryslacks.win").getHost()).getHostAddress()+":"+port);
 			DatabaseHandler.db = new DBFunc();
 			this.info = new JSONObject();

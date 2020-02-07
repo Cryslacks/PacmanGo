@@ -5,6 +5,7 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.SocketException;
 import java.util.ArrayList;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -19,6 +20,7 @@ public class Player implements Runnable{
 	private boolean isAlive;
 	private ArrayList<Player> update;
 	private byte[] readIn;
+	private ReentrantLock mutex;
 	
 	
 	public Player(Game game, PlayerType type, String name, InputStream is, OutputStream os){
@@ -32,6 +34,8 @@ public class Player implements Runnable{
 		this.isAlive = true;
 		this.update = new ArrayList<Player>();
 		this.readIn = new byte[1024];
+		this.mutex =  new ReentrantLock();
+		
 	}
 	
 	public String getName() {
@@ -44,14 +48,18 @@ public class Player implements Runnable{
 	
 	public ArrayList<Player> getUpdate(){
 		System.out.println("update: <"+this.name+"> "+this.update.size());
+		this.mutex.lock();
 		ArrayList<Player> p = this.update;
 		
 		this.update = new ArrayList<Player>();
+		this.mutex.unlock();
 		return p;
 	}
 	
 	public void addUpdate(Player p){
+		this.mutex.lock();
 		this.update.add(p);
+		this.mutex.unlock();
 	}
 	
 	public void lobbyUpdate(String name, boolean joined) {
