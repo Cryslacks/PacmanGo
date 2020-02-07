@@ -31,9 +31,15 @@ public class Game {
 			this.gameState = GameState.InProgress;
 			System.out.println("Game: Game has now started and is in progress");
 			j.put("protocol", "MAP_DATA");
-			// GET MAP DATA from DatabaseHandler.getMapData()
-			int mapData = 0;
-			j.put("data", mapData);		
+			// GET MAP DATA from DatabaseHandler.loadMap()
+			int tempo = 0; 																									//Need to add map ID;
+			MapValues mapV = DatabaseHandler.loadMap(tempo); 
+			
+			j.put("pos_mat", mapV.getPos_mat());
+			j.put("adj_mat", mapV.getAdj_mat());
+			if(ServerFunc.debugMode){
+				System.out.println(j.toString());
+			}
 			
 			for(int i = 0; i < this.players.size(); i++) {
 				if(!this.players.get(i).getName().equals(p.getName())) {
@@ -61,6 +67,10 @@ public class Game {
 		double[] bm = b.toMeters();
 	
 		return (am[0]-bm[0]) * (am[0]-bm[0]) + (am[1]-bm[1]) * (am[1]-bm[1]) < (this.collisionRadius*2) * (this.collisionRadius*2);
+	}
+	public boolean outOfBoundsDetection(Coordinate player, Coordinate edge1, Coordinate edge2){				
+		return false;
+		
 	}
 	
 	public Coordinate[] updatePlayer(Player p) {

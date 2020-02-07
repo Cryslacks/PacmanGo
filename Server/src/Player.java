@@ -1,4 +1,3 @@
-<<<<<<< refs/remotes/origin/Efiila
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
@@ -6,20 +5,14 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.SocketException;
 import java.util.ArrayList;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.json.JSONException;
-=======
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.util.ArrayList;
-
->>>>>>> Player object and value handling
 import org.json.JSONObject;
 
 public class Player implements Runnable{
 	private PlayerType type;
 	private String name;
-<<<<<<< refs/remotes/origin/Efiila
 	private Coordinate coord;
 	private InputStream is;
 	private OutputStream os;
@@ -27,6 +20,7 @@ public class Player implements Runnable{
 	private boolean isAlive;
 	private ArrayList<Player> update;
 	private byte[] readIn;
+	private ReentrantLock mutex;
 	
 	
 	public Player(Game game, PlayerType type, String name, InputStream is, OutputStream os){
@@ -40,35 +34,34 @@ public class Player implements Runnable{
 		this.isAlive = true;
 		this.update = new ArrayList<Player>();
 		this.readIn = new byte[1024];
+		this.mutex =  new ReentrantLock();
+		
 	}
 	
-<<<<<<< refs/remotes/origin/Efiila
 	public String getName() {
 		return this.name;
 	}
 	
 	public Coordinate getCoord(){
 		return this.coord;
-=======
-	
-	public Coordinate getCoords(){
-		return this.coords;
->>>>>>> Player object and value handling
 	}
 	
 	public ArrayList<Player> getUpdate(){
 		System.out.println("update: <"+this.name+"> "+this.update.size());
+		this.mutex.lock();
 		ArrayList<Player> p = this.update;
 		
 		this.update = new ArrayList<Player>();
+		this.mutex.unlock();
 		return p;
 	}
 	
 	public void addUpdate(Player p){
+		this.mutex.lock();
 		this.update.add(p);
+		this.mutex.unlock();
 	}
 	
-<<<<<<< refs/remotes/origin/Efiila
 	public void lobbyUpdate(String name, boolean joined) {
 		JSONObject j = new JSONObject();
 		if(joined)
@@ -96,7 +89,6 @@ public class Player implements Runnable{
 	@Override
 	public void run() {
 		while(isAlive){
-<<<<<<< refs/remotes/origin/Efiila
 			try {
 				this.is.read(this.readIn);
 				
@@ -141,9 +133,6 @@ public class Player implements Runnable{
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-=======
-			JSONObject response = new JSONObject((String)in.readObject());
->>>>>>> Player object and value handling
 			
 		}
 		
