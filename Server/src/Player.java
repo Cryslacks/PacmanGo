@@ -100,7 +100,7 @@ public class Player implements Runnable{
 					System.out.println("\t"+response.toString());
 				
 				if(response.getString("protocol").equals("START_GAME")) {
-					j = this.game.startGame(this);
+					j = this.game.startGame(this, 0); //TODO: MAP_ID IMPLEMENTATION
 				}else if(response.getString("protocol").equals("UPDATE_POSITION")){
 					this.coord.setCoord((double)response.getJSONArray("data").get(0), (double)response.getJSONArray("data").get(1));
 

@@ -7,6 +7,8 @@ import java.util.ArrayList;
 
 import org.json.JSONObject;
 
+import javafx.util.Pair;
+
 public class Game {
 	private ArrayList<Player> players;
 	private Coordinate[] coins;
@@ -14,6 +16,7 @@ public class Game {
 	private GameState gameState;
 	private int collisionRadius = 2;
 	private ConnectionHandler ch;
+	private MapData map;
 	
 	public Game(ConnectionHandler ch, int gameId, String name, InputStream ois, OutputStream oos) {
 		this.ch = ch;
@@ -24,19 +27,16 @@ public class Game {
 		System.out.println("Game: Game started with gameId <"+gameId+">");
 	}
 	
-	public JSONObject startGame(Player p) {
+	public JSONObject startGame(Player p, int mapId) {
 		JSONObject j = new JSONObject();
 		
 		if(p.getType() == PlayerType.Pacman) {
 			this.gameState = GameState.InProgress;
 			System.out.println("Game: Game has now started and is in progress");
 			j.put("protocol", "MAP_DATA");
-			// GET MAP DATA from DatabaseHandler.loadMap()
-			int tempo = 0; 																									//Need to add map ID;
-			MapValues mapV = DatabaseHandler.loadMap(tempo); 
+			// GET MAP DATA from DatabaseHandler.loadMap()																//Need to add map ID;
+			this.map = DatabaseHandler.loadMap(mapId); 
 			
-			j.put("pos_mat", mapV.getPos_mat());
-			j.put("adj_mat", mapV.getAdj_mat());
 			if(ServerFunc.debugMode){
 				System.out.println(j.toString());
 			}
@@ -62,7 +62,18 @@ public class Game {
 		return this.gameState == GameState.InProgress;
 	}
 	
-	public boolean colisionDetection(Coordinate a, Coordinate b) {
+	public boolean boundsDetection(Coordinate a) {
+		Pair<Coordinate, Coordinate>[] edges = this.map.getEdgeList();
+		
+		for(int i = 0; i < edges.length; i++) {
+			if(a.collideArea(edges[i].getKey(), edges[i].getValue(), 5))
+				return false;
+		}
+		
+		return true;
+	}
+	
+	public boolean collisionDetection(Coordinate a, Coordinate b) {
 		double[] am = a.toMeters();
 		double[] bm = b.toMeters();
 	
