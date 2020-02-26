@@ -84,6 +84,16 @@ public class ConnectionHandler implements Runnable{
 							this.info.put("data", "ERR_NO_EXIST");
 						}
 						break;
+						
+					case "SAVE_MAP":
+						this.info.put("protocol", "SAVE_MAP");
+						if(DatabaseHandler.saveMap(response.getJSONObject("data")))
+							this.info.put("data", 1);
+						else
+							this.info.put("data", 0);
+							
+						break;
+						
 					default:
 						this.info.put("protocol", response.getString("protocol"));
 						this.info.put("data", "ERROR_UNSUPPORTED_PROTOCOL");

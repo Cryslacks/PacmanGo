@@ -51,15 +51,15 @@ public class DatabaseHandler{
 			return "ERR_NO_USER";
 		}
 	}
-	public static MapValues loadMap(int id){
+	public static MapData loadMap(int id){
 		ResultSet rs = db.query("SELECT * FROM maps WHERE map_id = '"+id+"'");
 		MapData mapData = null;
-		int[][] sendAdj;
+
 		try {
 			while(rs.next()){
 				
 				String mapName = rs.getString("name");
-				JSONObject data = new JSONObject(rs.getString("map_data"));   //>>>>>>ÄNDRA TIL MAP INFO<<<<<
+				JSONObject data = new JSONObject(rs.getString("map_data"));
 				
 				mapData = new MapData(data, mapName);
 			}		
