@@ -105,6 +105,11 @@ public class Player implements Runnable{
 					this.coord.setCoord((double)response.getJSONArray("data").get(0), (double)response.getJSONArray("data").get(1));
 
 					Coordinate[] c = this.game.updatePlayer(this);
+					
+					if(this.game.isCompleted() > 1) {
+						j.put("protocol", "FINISH_GAME");
+						j.put("data", (this.game.isCompleted() == 1 ? "Pacman" : "Ghost"));
+					}
 
 					if(c != null) {						
 						System.out.println("Player: <"+this.name+"> Getting updated coords:<"+c.length+">");
@@ -114,8 +119,22 @@ public class Player implements Runnable{
 						
 						j.put("data", dd);
 					}else
-						j.put("data", "");
+						j.put("data", new int[0]);
 
+
+					int coin = this.game.hasCollectedCoin();
+					if(coin > -1)
+						j.append("data", coin);
+					else
+						j.append("data", new int[0]);
+
+					String rule = this.game.hasBrokenRule();
+					if(!rule.equals(""))
+						j.append("data", rule);
+					else
+						j.append("data", "");						
+					
+					
 					j.put("protocol", "POSITIONS");
 				}else {
 					j.put("protocol", "ERR");

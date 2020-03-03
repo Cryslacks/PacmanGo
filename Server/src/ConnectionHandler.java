@@ -16,6 +16,8 @@ import java.util.Base64;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import javafx.util.Pair;
+
 public class ConnectionHandler implements Runnable{
 	private Socket con;
 	private ServerSocket serverSocket;
@@ -92,6 +94,21 @@ public class ConnectionHandler implements Runnable{
 						else
 							this.info.put("data", 0);
 							
+						break;
+						
+					case "GET_MAPS":
+						this.info.put("protocol", "GET_MAPS");
+						Pair<Integer, String>[] data = DatabaseHandler.getMaps();
+						String[] names = new String[data.length];
+						Integer[] ids = new Integer[data.length];
+						for(int i = 0; i < data.length; i++) {
+//							System.out.println("\t i="+i+" => \n\t\tk="+data[i].getKey()+" v="+data[i].getValue());
+							names[i] = data[i].getValue();
+							ids[i] = data[i].getKey();
+						}
+						
+						this.info.append("data", ids);
+						this.info.append("data", names);
 						break;
 						
 					default:
