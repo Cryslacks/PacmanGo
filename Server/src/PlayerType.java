@@ -1,6 +1,6 @@
 
 public enum PlayerType {
 	Pacman, 
-	Monster;
+	Ghost;
 
 }

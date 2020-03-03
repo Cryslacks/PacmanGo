@@ -3,6 +3,8 @@ import java.sql.SQLException;
 
 import org.json.JSONObject;
 
+import javafx.util.Pair;
+
 public class DatabaseHandler{
 	public static DBFunc db;
 	
@@ -51,6 +53,40 @@ public class DatabaseHandler{
 			return "ERR_NO_USER";
 		}
 	}
+	
+	public static Pair<Integer, String>[] getMaps(){
+		ResultSet rs = db.query("SELECT COUNT(*) as size FROM maps");
+		int size = 0;
+
+		try {
+			rs.next();
+			size = rs.getInt("size");
+		} catch (SQLException e1) {
+			e1.printStackTrace();
+		}
+				
+		rs = db.query("SELECT * FROM maps");
+		Pair<Integer, String>[] pIS = null;
+
+		try {
+			pIS = new Pair[size];
+			System.out.println(pIS.length);
+			int i = 0;
+			while(rs.next() && i < size){	
+				String name = rs.getString("name");
+				int id = rs.getInt("map_id");
+				
+				pIS[i] = new Pair<Integer, String>(id, name);
+				i++;
+			}		
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		return pIS;
+	}
+	
+	
 	public static MapData loadMap(int id){
 		ResultSet rs = db.query("SELECT * FROM maps WHERE map_id = '"+id+"'");
 		MapData mapData = null;
@@ -69,9 +105,6 @@ public class DatabaseHandler{
 		return mapData;
 	}
 	
-	public static void loadCoin(){
-		//DO we even NEED?
-	}
 	public static boolean saveMap(JSONObject j){
 		ResultSet rs = db.query("SELECT * FROM maps WHERE name = '"+j.getString("MapName")+"'");
 			
