@@ -59,6 +59,8 @@ public class MapData {
 				}
 			}
 		}
+		
+		this.coins += this.posList.length;
 	}
 	
 	private void setupCoins() {
@@ -70,14 +72,47 @@ public class MapData {
 			Coordinate b = this.edgeList[i].getValue();
 			
 			for(int c = 0; c < Math.floor(a.distanceTo(b)/5); c++) {
-				this.coinList[currCoin] = new Coordinate(0, 0); // TODO: Fix Coordinate for the coin placement
-				currCoin++;
+				Coordinate[] coords = generateCoins(a, b, 15);
+				for (Coordinate curr : coords) {
+					this.coinList[currCoin] = curr;
+					currCoin++;
+				}
 			}
 		}
+		
+		for(int i = 0; i < this.posList.length; i++) {
+			this.coinList[currCoin] = this.posList[i];
+			currCoin++;
+		}
+	}
+	
+	static Coordinate[] generateCoins(Coordinate a, Coordinate b, int dist) {
+		double d = a.distanceToM(b);				
+		int numbCoins = (int) Math.floor(d/dist);
+		Coordinate[] coords = new Coordinate[numbCoins];
+		
+		double dRatio, lon, lat;
+		double[] oldA, oldB; 
+		d = a.distanceTo(b);
+		for(int i = 0; i < numbCoins; i++) {
+			dRatio = ((d/(numbCoins+1))*(i+1))/d;
+			oldA = a.getCoord();
+			oldB = b.getCoord();
+			lon = oldA[0] + dRatio * (oldB[0]-oldA[0]);
+			lat = oldA[1] + dRatio * (oldB[1]-oldA[1]);
+
+			coords[i] = new Coordinate(lon, lat);
+		}		
+		
+		return coords;
 	}
 	
 	public Pair<Coordinate, Coordinate>[] getEdgeList(){
 		return this.edgeList;
+	}
+	
+	public Coordinate[] getCoins() {
+		return this.coinList;
 	}
 
 	public String toString() {
