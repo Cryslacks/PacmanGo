@@ -42,16 +42,16 @@ public class Game {
 			j.put("protocol", "MAP_DATA");
 			// GET MAP DATA from DatabaseHandler.loadMap()																//Need to add map ID;
 			this.map = DatabaseHandler.loadMap(mapId); 
-			
 			if(ServerFunc.debugMode){
 				System.out.println(j.toString());
 			}
-			
+			j.put("data", map.getJSON());
 			for(int i = 0; i < this.players.size(); i++) {
 				if(!this.players.get(i).getName().equals(p.getName())) {
 					this.players.get(i).sendMapData(j);
 				}
 			}
+			j.append("data", map.getCoinPos());
 		}else {
 			j.put("protocol", "START_GAME");
 			j.put("data", false);

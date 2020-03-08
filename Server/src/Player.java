@@ -7,6 +7,7 @@ import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -100,26 +101,26 @@ public class Player implements Runnable{
 					System.out.println("\t"+response.toString());
 				
 				if(response.getString("protocol").equals("START_GAME")) {
-					j = this.game.startGame(this, 0); //TODO: MAP_ID IMPLEMENTATION
+					j = this.game.startGame(this, response.getInt("data")); //TODO: MAP_ID IMPLEMENTATION
 				}else if(response.getString("protocol").equals("UPDATE_POSITION")){
 					this.coord.setCoord((double)response.getJSONArray("data").get(0), (double)response.getJSONArray("data").get(1));
-
+					
 					Coordinate[] c = this.game.updatePlayer(this);
 					
 					if(this.game.isCompleted() > 1) {
 						j.put("protocol", "FINISH_GAME");
 						j.put("data", (this.game.isCompleted() == 1 ? "Pacman" : "Ghost"));
 					}
-
+					j.put("data", new JSONArray());
 					if(c != null) {						
 						System.out.println("Player: <"+this.name+"> Getting updated coords:<"+c.length+">");
 						double[][] dd = new double[c.length][2];
 						for(int i = 0; i < c.length; i++)
 							dd[i] = c[i].getCoord();
 						
-						j.put("data", dd);
+						j.append("data", dd);
 					}else
-						j.put("data", new int[0]);
+						j.append("data", new int[0]);
 
 
 					int coin = this.game.hasCollectedCoin();
@@ -141,7 +142,6 @@ public class Player implements Runnable{
 					j.put("data", "ERR_UNKNOWN_PROTOCOL");
 				}
 				
-
 				ServerFunc.sendMsg(this.os, j);
 			} catch (SocketException e) {
 				System.out.println("Player: Player "+this.name+" disconnected!");

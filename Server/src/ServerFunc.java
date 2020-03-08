@@ -6,12 +6,13 @@ import java.net.Socket;
 import org.json.JSONObject;
 
 public class ServerFunc {
-	public static boolean debugMode;
+	public static boolean debugMode = true;
 
 	static public boolean sendMsg(OutputStream s, JSONObject j) {
 		try {
 			if(ServerFunc.debugMode)
 				System.out.println("ServerFunc: Sending "+j.toString());
+			
 			s.write(j.toString().getBytes());
 			s.flush();
 		} catch (IOException e) {

@@ -5,6 +5,7 @@ import javafx.util.Pair;
 
 public class MapData {
 	private Pair<Coordinate, Coordinate>[] edgeList;
+	private JSONObject json;
 	private Coordinate[] posList;
 	private int[][]	adjMat;
 	private Coordinate[] coinList;
@@ -13,6 +14,7 @@ public class MapData {
 	private String mapName;
 	
 	public MapData(JSONObject mapdata, String name) {
+		this.json = mapdata;
 		this.verts = 0;
 		this.setupPos(mapdata);
 		this.setupAdj(mapdata);
@@ -22,7 +24,7 @@ public class MapData {
 	}
 		
 	private void setupPos(JSONObject mapdata) {
-		JSONArray pos_mat = mapdata.getJSONArray("pos_mat");
+		JSONArray pos_mat = mapdata.getJSONArray("pos_list");
 		this.posList = new Coordinate[pos_mat.length()];
 		
 		for(int i = 0; i < pos_mat.length(); i++) {
@@ -32,7 +34,7 @@ public class MapData {
 	}
 
 	private void setupAdj(JSONObject mapdata) {
-		JSONArray adjencyMatrix = mapdata.getJSONArray("adj_mat");
+		JSONArray adjencyMatrix = mapdata.getJSONArray("adj_list");
 		int nrOfLinks = adjencyMatrix.length();
 		this.adjMat = new int[nrOfLinks][nrOfLinks];
 		
@@ -111,6 +113,14 @@ public class MapData {
 		return this.edgeList;
 	}
 	
+	public double[][] getCoinPos()
+	{
+		double[][] coinpos = new double[coinList.length][];
+		for(int i = 0; i<coinpos.length; i++)
+			coinpos[i] = coinList[i].getCoord();
+		return coinpos;
+	}
+	
 	public Coordinate[] getCoins() {
 		return this.coinList;
 	}
@@ -119,5 +129,12 @@ public class MapData {
 		JSONObject a = new JSONObject();
 		
 		return "";
+	}
+	public JSONArray getJSON() 
+	{
+		JSONArray json = new JSONArray();
+		json.put(0,this.json.getJSONArray("adj_list"));
+		json.put(1,this.json.getJSONArray("pos_list"));
+		return json;
 	}
 }
