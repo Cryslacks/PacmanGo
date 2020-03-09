@@ -107,10 +107,7 @@ public class Player implements Runnable{
 					
 					Coordinate[] c = this.game.updatePlayer(this);
 					
-					if(this.game.isCompleted() > 1) {
-						j.put("protocol", "FINISH_GAME");
-						j.put("data", (this.game.isCompleted() == 1 ? "Pacman" : "Ghost"));
-					}
+					
 					j.put("data", new JSONArray());
 					if(c != null) {						
 						System.out.println("Player: <"+this.name+"> Getting updated coords:<"+c.length+">");
@@ -143,6 +140,21 @@ public class Player implements Runnable{
 				}
 				
 				ServerFunc.sendMsg(this.os, j);
+				if(this.game.isCompleted() >= 1) {
+					try {
+						Thread.currentThread().sleep(100);
+						//holding of on sending last packet due to issues with TCP 
+						// grouping last and second to last packet as one
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					JSONObject last = new JSONObject();
+					last.put("protocol", "FINISH_GAME");
+					last.put("data", (this.game.isCompleted() == 1 ? "Pacman" : "Ghost"));
+					ServerFunc.sendMsg(this.os, last);
+					isAlive = false;
+				}
 			} catch (SocketException e) {
 				System.out.println("Player: Player "+this.name+" disconnected!");
 				this.game.removePlayer(this);

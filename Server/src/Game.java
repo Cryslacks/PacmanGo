@@ -15,12 +15,13 @@ public class Game {
 	private Coordinate[] coins;
 	private int gameId;
 	private GameState gameState;
-	private int collisionRadius = 2;
+	private int collisionRadius = 10;
 	private ConnectionHandler ch;
 	private MapData map;
 	private PlayerType winner;
 	private int remCoin;
 	private String ruleBreak;
+	public boolean[] collectedCoins;
 	
 	public Game(ConnectionHandler ch, int gameId, String name, InputStream ois, OutputStream oos) {
 		this.ch = ch;
@@ -42,7 +43,8 @@ public class Game {
 			System.out.println("Game: Game has now started and is in progress");
 			j.put("protocol", "MAP_DATA");
 			// GET MAP DATA from DatabaseHandler.loadMap()																//Need to add map ID;
-			this.map = DatabaseHandler.loadMap(mapId); 
+			this.map = DatabaseHandler.loadMap(mapId);
+			collectedCoins = new boolean[this.map.getCoins().length];
 			if(ServerFunc.debugMode){
 				System.out.println(j.toString());
 			}
@@ -92,9 +94,9 @@ public class Game {
 		
 		Coordinate[] coins = this.map.getCoins();
 		for(int i = 0; i < coins.length; i++)
-			if(collisionDetection(p.getCoord(), coins[i]))
+			if(!collectedCoins[i]&&collisionDetection(p.getCoord(), coins[i]))
 				return i;
-
+		
 		return -1;
 	}
 	
@@ -111,10 +113,14 @@ public class Game {
 	}
 	
 	public boolean collisionDetection(Coordinate a, Coordinate b) {
-		double[] am = a.toMeters();
-		double[] bm = b.toMeters();
-	
-		return (am[0]-bm[0]) * (am[0]-bm[0]) + (am[1]-bm[1]) * (am[1]-bm[1]) < (this.collisionRadius*2) * (this.collisionRadius*2);
+		double dist = a.distanceToM(b);
+		if(ServerFunc.debugMode)
+			System.out.println((dist < this.collisionRadius) + " = Collision");
+		return dist < this.collisionRadius;
+		//double[] am = a.toMeters();
+		//double[] bm = b.toMeters();
+		
+		//return (am[0]-bm[0]) * (am[0]-bm[0]) + (am[1]-bm[1]) * (am[1]-bm[1]) < (this.collisionRadius*2) * (this.collisionRadius*2);
 	}
 	
 	public Coordinate[] updatePlayer(Player p) {
@@ -134,8 +140,25 @@ public class Game {
 		}
 		
 		int coinCollected = isOnCoin(p);
-		if(coinCollected != -1)
+		if(coinCollected != -1) {
 			this.remCoin = coinCollected;
+			collectedCoins[coinCollected] = true;
+			boolean pacmanWins = false;
+			for(boolean b : collectedCoins) {
+				if(!b) {
+					pacmanWins = b;
+					break;
+				}
+				else pacmanWins = b;
+			}
+			if(pacmanWins) 
+			{
+				this.gameState = GameState.Completed;
+				this.winner = PlayerType.Pacman;
+			}
+				
+					
+		}
 		
 		
 		if(pList.size() == 0)
