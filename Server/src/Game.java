@@ -5,6 +5,7 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import javafx.util.Pair;
@@ -45,13 +46,16 @@ public class Game {
 			if(ServerFunc.debugMode){
 				System.out.println(j.toString());
 			}
-			j.put("data", map.getJSON());
+			JSONObject mapData = new JSONObject();
+			j.put("data", mapData);
+			mapData.put("adj_list", this.map.adjList());
+			mapData.put("pos_list", this.map.posList());
 			for(int i = 0; i < this.players.size(); i++) {
 				if(!this.players.get(i).getName().equals(p.getName())) {
 					this.players.get(i).sendMapData(j);
 				}
 			}
-			j.append("data", map.getCoinPos());
+			mapData.put("coins", this.map.getCoinPos());
 		}else {
 			j.put("protocol", "START_GAME");
 			j.put("data", false);

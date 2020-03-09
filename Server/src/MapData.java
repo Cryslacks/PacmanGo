@@ -130,11 +130,16 @@ public class MapData {
 		
 		return "";
 	}
-	public JSONArray getJSON() 
+	
+	public JSONArray posList()
 	{
-		JSONArray json = new JSONArray();
-		json.put(0,this.json.getJSONArray("adj_list"));
-		json.put(1,this.json.getJSONArray("pos_list"));
-		return json;
+		return this.json.getJSONArray("pos_list");
 	}
+	
+	public JSONArray adjList() 
+	{
+		return this.json.getJSONArray("pos_list");
+	}
+	
+	
 }
