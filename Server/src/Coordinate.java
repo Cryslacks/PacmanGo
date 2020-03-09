@@ -1,12 +1,12 @@
 
 public class Coordinate {
 	private static final double RADIUS = 6378137.0;
-	private double lon;
 	private double lat;
+	private double lon;
 
-	public Coordinate(double lon, double lat){
-		this.lon = lon;
+	public Coordinate(double lat, double lon){
 		this.lat = lat;
+		this.lon = lon;
 	}
 	
 	public double[] getCoord(){
@@ -29,7 +29,6 @@ public class Coordinate {
 	public double distanceTo(Coordinate c) {
 		double[] a = this.getCoord();
 		double[] b = c.getCoord();
-	
 		
 		return Math.sqrt(Math.pow(a[0]-b[0],2) + Math.pow(a[1]-b[1],2));
 	}

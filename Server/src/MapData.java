@@ -138,7 +138,7 @@ public class MapData {
 	
 	public JSONArray adjList() 
 	{
-		return this.json.getJSONArray("pos_list");
+		return this.json.getJSONArray("adj_list");
 	}
 	
 	
