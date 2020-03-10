@@ -42,6 +42,8 @@ public class Game {
 			j.put("protocol", "MAP_DATA");
 			// GET MAP DATA from DatabaseHandler.loadMap()																//Need to add map ID;
 			this.map = DatabaseHandler.loadMap(mapId); 
+			j.put("data", this.map.toJSON().get("data"));
+			System.out.println("Sending MAP_DATA => \n\t"+j.toString());
 			
 			if(ServerFunc.debugMode){
 				System.out.println(j.toString());
@@ -72,7 +74,7 @@ public class Game {
 	}
 	
 	public boolean boundsDetection(Coordinate player) {
-		Pair<Coordinate, Coordinate>[] edges = this.map.getEdgeList();
+		Edge[] edges = this.map.getEdgeList();
 		
 		for(int i = 0; i < edges.length; i++) {
 			if(player.collideArea(edges[i].getKey(), edges[i].getValue(), 5))
@@ -140,7 +142,8 @@ public class Game {
 		Coordinate[] coords = new Coordinate[pList.size()];
 
 		for(int i = 0; i < pList.size(); i++)
-			coords[i] = this.players.get(this.players.indexOf(pList.get(i))).getCoord();
+			if(pList.get(i) != null)
+				coords[i] = this.players.get(this.players.indexOf(pList.get(i))).getCoord();
 		
 		return coords;
 	}

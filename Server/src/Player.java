@@ -70,11 +70,23 @@ public class Player implements Runnable{
 			j.put("protocol", "LEFT_LOBBY");
 			
 		j.put("data", name);
-		ServerFunc.sendMsg(this.os, j);
+		try {
+			ServerFunc.sendMsg(this.os, j);
+		} catch (SocketException e) {
+			System.out.println("Player: Player "+this.name+" disconnected!");
+			this.game.removePlayer(this);
+			this.isAlive = false;
+		}
 	}
 	
 	public void sendMapData(JSONObject j) {
-		ServerFunc.sendMsg(this.os, j);
+		try {
+			ServerFunc.sendMsg(this.os, j);
+		} catch (SocketException e) {
+			System.out.println("Player: Player "+this.name+" disconnected!");
+			this.game.removePlayer(this);
+			this.isAlive = false;
+		}
 	}
 
 	public void changeType(PlayerType pt) {
@@ -100,7 +112,7 @@ public class Player implements Runnable{
 					System.out.println("\t"+response.toString());
 				
 				if(response.getString("protocol").equals("START_GAME")) {
-					j = this.game.startGame(this, 0); //TODO: MAP_ID IMPLEMENTATION
+					j = this.game.startGame(this, 9);
 				}else if(response.getString("protocol").equals("UPDATE_POSITION")){
 					this.coord.setCoord((double)response.getJSONArray("data").get(0), (double)response.getJSONArray("data").get(1));
 
@@ -148,7 +160,9 @@ public class Player implements Runnable{
 				this.game.removePlayer(this);
 				this.isAlive = false;
 			} catch (JSONException e) {
-				e.printStackTrace();
+				System.out.println("Player: Player "+this.name+" disconnected!");
+				this.game.removePlayer(this);
+				this.isAlive = false;
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
