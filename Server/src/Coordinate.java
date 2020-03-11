@@ -10,7 +10,7 @@ public class Coordinate {
 	}
 	
 	public double[] getCoord(){
-		double[] temp = {this.lat, this.lon};
+		double[] temp = {this.lon, this.lat};
 		return temp;
 	}
 	public void setCoord(double lon, double lat){
@@ -55,7 +55,7 @@ public class Coordinate {
 	public boolean collideArea(Coordinate a, Coordinate b, int radius) {
 		// Borrowed from: http://mathworld.wolfram.com/Circle-LineIntersection.html
 		
-		// FIXA DETTA SEN FÖR I HELVETE
+		// FIXA DETTA SEN Fï¿½R I HELVETE
 		
 		
 		double d_r = Math.sqrt(Math.pow(a.getCoord()[0]-b.getCoord()[0],2) + Math.pow(a.getCoord()[1]-b.getCoord()[1],2));

@@ -129,10 +129,10 @@ public class Player implements Runnable{
 						for(int i = 0; i < c.length; i++)
 							dd[i] = c[i].getCoord();
 						
-						j.put("data", dd);
+						j.append("data", dd);
 					}else
-						j.put("data", new int[0]);
-
+						j.append("data", new int[0]);
+				 		
 
 					int coin = this.game.hasCollectedCoin();
 					if(coin > -1)
@@ -160,6 +160,8 @@ public class Player implements Runnable{
 				this.game.removePlayer(this);
 				this.isAlive = false;
 			} catch (JSONException e) {
+				if(ServerFunc.debugMode)
+					e.printStackTrace();
 				System.out.println("Player: Player "+this.name+" disconnected!");
 				this.game.removePlayer(this);
 				this.isAlive = false;
