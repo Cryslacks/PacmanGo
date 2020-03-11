@@ -70,11 +70,23 @@ public class Player implements Runnable{
 			j.put("protocol", "LEFT_LOBBY");
 			
 		j.put("data", name);
-		ServerFunc.sendMsg(this.os, j);
+		try {
+			ServerFunc.sendMsg(this.os, j);
+		} catch (SocketException e) {
+			System.out.println("Player: Player "+this.name+" disconnected!");
+			this.game.removePlayer(this);
+			this.isAlive = false;
+		}
 	}
 	
 	public void sendMapData(JSONObject j) {
-		ServerFunc.sendMsg(this.os, j);
+		try {
+			ServerFunc.sendMsg(this.os, j);
+		} catch (SocketException e) {
+			System.out.println("Player: Player "+this.name+" disconnected!");
+			this.game.removePlayer(this);
+			this.isAlive = false;
+		}
 	}
 
 	public void changeType(PlayerType pt) {
@@ -100,11 +112,16 @@ public class Player implements Runnable{
 					System.out.println("\t"+response.toString());
 				
 				if(response.getString("protocol").equals("START_GAME")) {
-					j = this.game.startGame(this, 0); //TODO: MAP_ID IMPLEMENTATION
+					j = this.game.startGame(this, 9);
 				}else if(response.getString("protocol").equals("UPDATE_POSITION")){
 					this.coord.setCoord((double)response.getJSONArray("data").get(0), (double)response.getJSONArray("data").get(1));
 
 					Coordinate[] c = this.game.updatePlayer(this);
+					
+					if(this.game.isCompleted() > 1) {
+						j.put("protocol", "FINISH_GAME");
+						j.put("data", (this.game.isCompleted() == 1 ? "Pacman" : "Ghost"));
+					}
 
 					if(c != null) {						
 						System.out.println("Player: <"+this.name+"> Getting updated coords:<"+c.length+">");
@@ -112,10 +129,24 @@ public class Player implements Runnable{
 						for(int i = 0; i < c.length; i++)
 							dd[i] = c[i].getCoord();
 						
-						j.put("data", dd);
+						j.append("data", dd);
 					}else
-						j.put("data", "");
+						j.append("data", new int[0]);
+				 		
 
+					int coin = this.game.hasCollectedCoin();
+					if(coin > -1)
+						j.append("data", coin);
+					else
+						j.append("data", new int[0]);
+
+					String rule = this.game.hasBrokenRule();
+					if(!rule.equals(""))
+						j.append("data", rule);
+					else
+						j.append("data", "");						
+					
+					
 					j.put("protocol", "POSITIONS");
 				}else {
 					j.put("protocol", "ERR");
@@ -129,7 +160,11 @@ public class Player implements Runnable{
 				this.game.removePlayer(this);
 				this.isAlive = false;
 			} catch (JSONException e) {
-				e.printStackTrace();
+				if(ServerFunc.debugMode)
+					e.printStackTrace();
+				System.out.println("Player: Player "+this.name+" disconnected!");
+				this.game.removePlayer(this);
+				this.isAlive = false;
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
