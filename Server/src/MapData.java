@@ -14,7 +14,6 @@ public class MapData {
 	private String mapName;
 	
 	public MapData(JSONObject mapdata, String name) {
-		this.json = mapdata;
 		this.verts = 0;
 		this.setupPos(mapdata);
 		this.setupAdj(mapdata);
@@ -120,14 +119,6 @@ public class MapData {
 		return this.edgeList;
 	}
 	
-	public double[][] getCoinPos()
-	{
-		double[][] coinpos = new double[coinList.length][];
-		for(int i = 0; i<coinpos.length; i++)
-			coinpos[i] = coinList[i].getCoord();
-		return coinpos;
-	}
-	
 	public Coordinate[] getCoins() {
 		return this.coinList;
 	}
@@ -155,16 +146,4 @@ public class MapData {
 		System.out.println(a.toString());
 		return a;
 	}
-	
-	public JSONArray posList()
-	{
-		return this.json.getJSONArray("pos_list");
-	}
-	
-	public JSONArray adjList() 
-	{
-		return this.json.getJSONArray("adj_list");
-	}
-	
-	
 }

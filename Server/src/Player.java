@@ -7,7 +7,6 @@ import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -116,11 +115,14 @@ public class Player implements Runnable{
 					j = this.game.startGame(this, 9);
 				}else if(response.getString("protocol").equals("UPDATE_POSITION")){
 					this.coord.setCoord((double)response.getJSONArray("data").get(0), (double)response.getJSONArray("data").get(1));
-					
+
 					Coordinate[] c = this.game.updatePlayer(this);
 					
-					
-					j.put("data", new JSONArray());
+					if(this.game.isCompleted() > 1) {
+						j.put("protocol", "FINISH_GAME");
+						j.put("data", (this.game.isCompleted() == 1 ? "Pacman" : "Ghost"));
+					}
+
 					if(c != null) {						
 						System.out.println("Player: <"+this.name+"> Getting updated coords:<"+c.length+">");
 						double[][] dd = new double[c.length][2];
@@ -151,22 +153,8 @@ public class Player implements Runnable{
 					j.put("data", "ERR_UNKNOWN_PROTOCOL");
 				}
 				
+
 				ServerFunc.sendMsg(this.os, j);
-				if(this.game.isCompleted() >= 1) {
-					try {
-						Thread.currentThread().sleep(100);
-						//holding of on sending last packet due to issues with TCP 
-						// grouping last and second to last packet as one
-					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-					JSONObject last = new JSONObject();
-					last.put("protocol", "FINISH_GAME");
-					last.put("data", (this.game.isCompleted() == 1 ? "Pacman" : "Ghost"));
-					ServerFunc.sendMsg(this.os, last);
-					isAlive = false;
-				}
 			} catch (SocketException e) {
 				System.out.println("Player: Player "+this.name+" disconnected!");
 				this.game.removePlayer(this);

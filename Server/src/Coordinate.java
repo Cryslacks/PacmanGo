@@ -1,19 +1,19 @@
 
 public class Coordinate {
 	private static final double RADIUS = 6378137.0;
-	private double lat;
 	private double lon;
+	private double lat;
 
-	public Coordinate(double lat, double lon){
-		this.lat = lat;
+	public Coordinate(double lon, double lat){
 		this.lon = lon;
+		this.lat = lat;
 	}
 	
 	public double[] getCoord(){
 		double[] temp = {this.lon, this.lat};
 		return temp;
 	}
-	public void setCoord(double lat, double lon){
+	public void setCoord(double lon, double lat){
 		this.lon = lon;
 		this.lat = lat;
 	}
@@ -29,6 +29,7 @@ public class Coordinate {
 	public double distanceTo(Coordinate c) {
 		double[] a = this.getCoord();
 		double[] b = c.getCoord();
+	
 		
 		return Math.sqrt(Math.pow(a[0]-b[0],2) + Math.pow(a[1]-b[1],2));
 	}
@@ -53,33 +54,19 @@ public class Coordinate {
 	
 	public boolean collideArea(Coordinate a, Coordinate b, int radius) {
 		// Borrowed from: http://mathworld.wolfram.com/Circle-LineIntersection.html
-		// Herons formula https://www.wikihow.com/Find-the-Height-of-a-Triangle
-		// FIXA DETTA SEN F�R I HELVETE
-		double dA = this.distanceToM(a);
-		double dB = this.distanceToM(b);
-		double dAB = a.distanceToM(b);
-		System.out.println(dA + " "+ dB + " " + dAB);
-		if(dA>(dAB) || dB>(dAB))
-			return false;
-		double sum = (dA+dB+dAB)/2;
-		double dist = Math.sqrt((sum*(sum-dA)*(sum-dB)*(sum-dAB)))*2/dAB;
-		System.out.println(dist);
-		if(dist>radius) 
-		{
-			return false;
-		}
-		return true;
-		/*sqr(s(s-a)(s-b)(s-c)
-		double d_r = Math.sqrt(Math.pow(a.getCoord()[0]-b.getCoord()[0],2) + Math.pow(a.getCoord()[1]-b.getCoord()[1],2));
 		
+		// FIXA DETTA SEN F�R I HELVETE
+		
+		
+		double d_r = Math.sqrt(Math.pow(a.getCoord()[0]-b.getCoord()[0],2) + Math.pow(a.getCoord()[1]-b.getCoord()[1],2));
 		double D = a.getCoord()[0]*b.getCoord()[1]-b.getCoord()[0]*a.getCoord()[1];
 		
 		double discr = Math.pow(radius, 2)*Math.pow(d_r, 2)-Math.pow(D, 2);
-		System.out.println(d_r + " " + D + " " + discr );
+		
 		if(discr >= 0)
 			return true;
 
-		return false;*/
+		return false;
 	}
 	
 }

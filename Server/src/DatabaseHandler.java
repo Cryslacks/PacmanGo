@@ -99,9 +99,7 @@ public class DatabaseHandler{
 				JSONObject data = new JSONObject(rs.getString("map_data"));
 				
 				mapData = new MapData(data, mapName);
-			}
-			
-			
+			}		
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}

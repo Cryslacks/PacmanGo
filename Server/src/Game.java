@@ -5,7 +5,6 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
 
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 import javafx.util.Pair;
@@ -15,13 +14,12 @@ public class Game {
 	private Coordinate[] coins;
 	private int gameId;
 	private GameState gameState;
-	private int collisionRadius = 10;
+	private int collisionRadius = 2;
 	private ConnectionHandler ch;
 	private MapData map;
 	private PlayerType winner;
 	private int remCoin;
 	private String ruleBreak;
-	public boolean[] collectedCoins;
 	
 	public Game(ConnectionHandler ch, int gameId, String name, InputStream ois, OutputStream oos) {
 		this.ch = ch;
@@ -50,16 +48,12 @@ public class Game {
 			if(ServerFunc.debugMode){
 				System.out.println(j.toString());
 			}
-			JSONObject mapData = new JSONObject();
-			j.put("data", mapData);
-			mapData.put("adj_list", this.map.adjList());
-			mapData.put("pos_list", this.map.posList());
+			
 			for(int i = 0; i < this.players.size(); i++) {
 				if(!this.players.get(i).getName().equals(p.getName())) {
 					this.players.get(i).sendMapData(j);
 				}
 			}
-			mapData.put("coins", this.map.getCoinPos());
 		}else {
 			j.put("protocol", "START_GAME");
 			j.put("data", false);
@@ -96,9 +90,9 @@ public class Game {
 		
 		Coordinate[] coins = this.map.getCoins();
 		for(int i = 0; i < coins.length; i++)
-			if(!collectedCoins[i]&&collisionDetection(p.getCoord(), coins[i]))
+			if(collisionDetection(p.getCoord(), coins[i]))
 				return i;
-		
+
 		return -1;
 	}
 	
@@ -115,14 +109,10 @@ public class Game {
 	}
 	
 	public boolean collisionDetection(Coordinate a, Coordinate b) {
-		double dist = a.distanceToM(b);
-		if(ServerFunc.debugMode)
-			System.out.println((dist < this.collisionRadius) + " = Collision");
-		return dist < this.collisionRadius;
-		//double[] am = a.toMeters();
-		//double[] bm = b.toMeters();
-		
-		//return (am[0]-bm[0]) * (am[0]-bm[0]) + (am[1]-bm[1]) * (am[1]-bm[1]) < (this.collisionRadius*2) * (this.collisionRadius*2);
+		double[] am = a.toMeters();
+		double[] bm = b.toMeters();
+	
+		return (am[0]-bm[0]) * (am[0]-bm[0]) + (am[1]-bm[1]) * (am[1]-bm[1]) < (this.collisionRadius*2) * (this.collisionRadius*2);
 	}
 	
 	public Coordinate[] updatePlayer(Player p) {
@@ -142,25 +132,8 @@ public class Game {
 		}
 		
 		int coinCollected = isOnCoin(p);
-		if(coinCollected != -1) {
+		if(coinCollected != -1)
 			this.remCoin = coinCollected;
-			collectedCoins[coinCollected] = true;
-			boolean pacmanWins = false;
-			for(boolean b : collectedCoins) {
-				if(!b) {
-					pacmanWins = b;
-					break;
-				}
-				else pacmanWins = b;
-			}
-			if(pacmanWins) 
-			{
-				this.gameState = GameState.Completed;
-				this.winner = PlayerType.Pacman;
-			}
-				
-					
-		}
 		
 		
 		if(pList.size() == 0)
