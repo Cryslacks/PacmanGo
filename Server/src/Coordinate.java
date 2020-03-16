@@ -10,7 +10,7 @@ public class Coordinate {
 	}
 	
 	public double[] getCoord(){
-		double[] temp = {this.lat, this.lon};
+		double[] temp = {this.lon, this.lat};
 		return temp;
 	}
 	public void setCoord(double lat, double lon){
@@ -54,7 +54,7 @@ public class Coordinate {
 	public boolean collideArea(Coordinate a, Coordinate b, int radius) {
 		// Borrowed from: http://mathworld.wolfram.com/Circle-LineIntersection.html
 		// Herons formula https://www.wikihow.com/Find-the-Height-of-a-Triangle
-		// FIXA DETTA SEN FÖR I HELVETE
+		// FIXA DETTA SEN Fï¿½R I HELVETE
 		double dA = this.distanceToM(a);
 		double dB = this.distanceToM(b);
 		double dAB = a.distanceToM(b);

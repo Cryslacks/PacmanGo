@@ -40,6 +40,7 @@ public class DatabaseHandler{
 		}
 	}
 	public static void updateHwid(String username, String hwid){
+		db.query("UPDATE users SET hwid='null' WHERE hwid='"+hwid+"'");
 		db.query("UPDATE users SET hwid='"+hwid+"' WHERE username='"+username+"'");
 	}
 	
@@ -108,14 +109,14 @@ public class DatabaseHandler{
 	}
 	
 	public static boolean saveMap(JSONObject j){
-		ResultSet rs = db.query("SELECT * FROM maps WHERE map_name = '"+j.getString("map_name")+"'");
+		ResultSet rs = db.query("SELECT * FROM maps WHERE map_name = '"+j.getString("MapName")+"'");
 			
 			try {
 				if(rs.next())
 					return false;
 				else{
-					String tempName = j.getString("map_name");
-					j.remove("map_name");
+					String tempName = j.getString("MapName");
+					j.remove("MapName");
 					db.query("INSERT INTO maps (map_name, map_data) VALUES ('"+tempName+"', '"+j.toString()+"')");
 					return true;
 				}
