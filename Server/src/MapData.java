@@ -1,8 +1,11 @@
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import javafx.util.Pair;
-
+/**
+ * Represents the database data provided as map.
+ * @author David Eriksson
+ * @author Fredrik Lindahl
+ */
 public class MapData {
 	private Edge[] edgeList;
 	private Coordinate[] posList;
@@ -14,6 +17,11 @@ public class MapData {
 	private int verts;
 	private String mapName;
 	
+	/**
+	 * Creates a new map from provided data and name.
+	 * @param mapdata The database mapdata as a JSONObject.
+	 * @param name The name which the map has.
+	 */
 	public MapData(JSONObject mapdata, String name) {
 		this.verts = 0;
 		this.setupPos(mapdata);
@@ -24,7 +32,11 @@ public class MapData {
 		System.out.println("Coins: "+coins);
 		System.out.println("Verts: "+verts);
 	}
-		
+
+	/**
+	 * Sets up the position list from provided mapdata.
+	 * @param mapdata The data of the map which is to be setup.
+	 */
 	private void setupPos(JSONObject mapdata) {
 		JSONArray pos_mat = mapdata.getJSONArray("pos_list");
 		this.posList = new Coordinate[pos_mat.length()];
@@ -35,6 +47,10 @@ public class MapData {
 		}
 	}
 
+	/**
+	 * Sets up the adjency matrix from provided mapdata.
+	 * @param mapdata The data of the map which is to be setup.
+	 */
 	private void setupAdj(JSONObject mapdata) {
 		JSONArray adjencyMatrix = mapdata.getJSONArray("adj_list");
 		
@@ -46,7 +62,7 @@ public class MapData {
 			JSONArray row = adjencyMatrix.getJSONArray(i);
 			this.oldAdj[i] = new int[row.length()];
 			for(int c = 0; c < row.length(); c++) {
-				/*if(i == row.getInt(c))      Fråga inte varför detta är utkommenterat, det är svårt att läsa en api.
+				/*if(i == row.getInt(c))      Frï¿½ga inte varfï¿½r detta ï¿½r utkommenterat, det ï¿½r svï¿½rt att lï¿½sa en api.
 					continue;*/
 				this.oldAdj[i][c] = row.getInt(c);
 				this.adjMat[i][row.getInt(c)] = 1;
@@ -55,6 +71,9 @@ public class MapData {
 		}
 	}
 	
+	/**
+	 * Sets up the edges between each connected node.
+	 */
 	private void setupEdges() {
 		this.edgeList = new Edge[this.verts];
 		int vertNr = 0;
@@ -72,6 +91,9 @@ public class MapData {
 		this.coins += this.posList.length;
 	}
 	
+	/**
+	 * Sets up the coins which are located on each edge and node.
+	 */
 	private void setupCoins() {
 		this.coinList = new Coordinate[this.coins];
 		int currCoin = 0;
@@ -97,6 +119,13 @@ public class MapData {
 		}
 	}
 	
+	/**
+	 * Generates a coin between two coordinates with a specified distance.
+	 * @param a The first coordinate of the edge.
+	 * @param b The second coordinate of the edge.
+	 * @param dist The distance between each coin which shall be added.
+	 * @return A coordinate list where each new coin is located on the edge.
+	 */
 	static Coordinate[] generateCoins(Coordinate a, Coordinate b, int dist) {
 		double d = a.distanceToM(b);				
 		int numbCoins = (int) Math.floor(d/dist);
@@ -118,18 +147,35 @@ public class MapData {
 		return coords;
 	}
 	
+	/**
+	 * Gets the list of edges.
+	 * @return A list of edges.
+	 */
 	public Edge[] getEdgeList(){
 		return this.edgeList;
 	}
 	
+	/**
+	 * Gets all of the coins on the map. 
+	 * @return A list of all coins which are located on the map.
+	 */
 	public Coordinate[] getCoins() {
 		return this.coinList;
 	}
 
+	/**
+	 * Removes a coin which is located on the map.
+	 * @param id The specified id of the coin which is to be removed.
+	 */
 	public void removeCoin(int id) {
 		this.coinList[id] = null;
 	}
 	
+	/**
+	 * Converts the map into a JSON format.
+	 * @param pacman Boolean if the player is pacman, due to ghosts not being able to see coins.
+	 * @return A JSONObject containing all details of the map.
+	 */
 	public JSONObject toJSON(boolean pacman) {
 		JSONObject a = new JSONObject();
 		

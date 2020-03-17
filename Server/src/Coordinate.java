@@ -1,23 +1,46 @@
-
+/**
+ * Represents a coordinate of lon and lat.
+ * @author David Eriksson
+ * @author Fredrik Lindahl
+ */
 public class Coordinate {
 	private static final double RADIUS = 6378137.0;
 	private double lon;
 	private double lat;
 
+	/**
+	 * Creates a new coordinate from a longitude and latitude.
+	 * @param lon The longitude of the coordinate
+	 * @param lat The latitude of the coordinate
+	 */
 	public Coordinate(double lon, double lat){
 		this.lon = lon;
 		this.lat = lat;
 	}
-	
+
+	/**
+	 * Gets the longitude and latitude of the current coordinate.
+	 * @return A double array of the longitude and latitude.
+	 */
 	public double[] getCoord(){
 		double[] temp = {this.lon, this.lat};
 		return temp;
 	}
+	
+	/**
+	 * Sets the longitude and latitude of the current coordinate.
+	 * @param lon The new longitude.
+	 * @param lat The new latitude.
+	 */
 	public void setCoord(double lon, double lat){
 		this.lon = lon;
 		this.lat = lat;
 	}
 	
+	/**
+	 * Calculates the current longitude and latitude into meters from the polar circle.
+	 * @return Double array with x, y and z in meters from the polar circle.
+	 */
 	public double[] toMeters() {
 		// https://www.codeproject.com/Questions/626899/Converting-Latitude-And-Longitude-to-an-X-Y-Coordi
 		double[] temp = {	RADIUS * Math.cos(this.lat) * Math.cos(this.lon),
@@ -25,7 +48,12 @@ public class Coordinate {
 							RADIUS * Math.sin(this.lat) };
 		return temp;
 	}
-
+	
+	/**
+	 * Calculates the distance between the current coordinate and the specified coordinate.
+	 * @param c The coordinate which shall be calculated between the current.
+	 * @return The distance in combined longitude and latitude between the two coordinates as an double.
+	 */
 	public double distanceTo(Coordinate c) {
 		double[] a = this.getCoord();
 		double[] b = c.getCoord();
@@ -33,7 +61,12 @@ public class Coordinate {
 		
 		return Math.sqrt(Math.pow(a[0]-b[0],2) + Math.pow(a[1]-b[1],2));
 	}
-	
+
+	/**
+	 * Calculates the distance between the current coordinate and the specified coordinate in meters.
+	 * @param c The coordinate which shall be calculated between the current.
+	 * @return The distance in meters which is between the two coordinates as an double.
+	 */
 	public double distanceToM(Coordinate c) {
 		//Borrowed from https://stackoverflow.com/questions/837872/calculate-distance-in-meters-when-you-know-longitude-and-latitude-in-java
 		
@@ -52,6 +85,13 @@ public class Coordinate {
 		return dist;
 	}
 	
+	/**
+	 * Calculates if two coordinates collide which eachother if both have a specified radius.
+	 * @param a The first coordinate to check.
+	 * @param b The second coordinate to check.
+	 * @param radius The radius of the circle which is built from each of the two coordinates.
+	 * @return Boolean which is true if the two coordinates collide in the area created by the radius as a circle.
+	 */
 	public boolean collideArea(Coordinate a, Coordinate b, int radius) {
 		// Borrowed from: http://mathworld.wolfram.com/Circle-LineIntersection.html
 		

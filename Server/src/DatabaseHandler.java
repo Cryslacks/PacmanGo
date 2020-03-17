@@ -4,10 +4,21 @@ import java.sql.SQLException;
 import org.json.JSONObject;
 
 import javafx.util.Pair;
-
+/**
+ * Provides functions for easier use of SQL commands.
+ * @author David Eriksson
+ * @author Fredrik Lindahl
+ */
 public class DatabaseHandler{
 	public static DBFunc db;
-	
+
+	/**
+	 * Checks if the specified user credentials is valid.
+	 * @param username The username of the specified account.
+	 * @param password The password of the specified account.
+	 * @param hwid The hardware id of the specified account. 
+	 * @return Boolean which if the provided credentials are valid.
+	 */
 	public static boolean loginAccount(String username, String password, String hwid){
 		ResultSet rs = db.query("SELECT * FROM users WHERE username = '"+username+"' AND password='"+password+"'");
 		
@@ -24,6 +35,13 @@ public class DatabaseHandler{
 	
 	}
 	
+	/**
+	 * Creates an account with the specified credentials.
+	 * @param username The username of the new account.
+	 * @param password The password of the new account.
+	 * @param hwid The hardware id of the new account. 
+	 * @return Boolean if the specified credentials doesn't already exist.
+	 */
 	public static boolean createAccount(String username, String password, String hwid){
 		ResultSet rs = db.query("SELECT * FROM users WHERE username = '"+username+"' AND password='"+password+"'");
 
@@ -39,11 +57,22 @@ public class DatabaseHandler{
 			return false;
 		}
 	}
+	
+	/**
+	 * Updates the current hardware id of a specified user.
+	 * @param username The username of the specified account.
+	 * @param hwid The new hardware id which the specified account will be changed to.
+	 */
 	public static void updateHwid(String username, String hwid){
 		db.query("UPDATE users SET hwid='null' WHERE hwid='"+hwid+"'");
 		db.query("UPDATE users SET hwid='"+hwid+"' WHERE username='"+username+"'");
 	}
 	
+	/**
+	 * Gets the name from a provided hardware id.
+	 * @param hwid The hardware id which the name is to be checked.
+	 * @return The name of the account which had the specified hardware id.
+	 */
 	public static String getNameFromHWID(String hwid) {
 		ResultSet rs = db.query("SELECT username FROM users WHERE hwid = '"+hwid+"'");
 		try {
@@ -54,7 +83,10 @@ public class DatabaseHandler{
 			return "ERR_NO_USER";
 		}
 	}
-	
+	/**
+	 * Gets all the maps which are located in the database.
+	 * @return A pair list containing pairs of map id and map name.
+	 */
 	public static Pair<Integer, String>[] getMaps(){
 		ResultSet rs = db.query("SELECT COUNT(*) as size FROM maps");
 		int size = 0;
@@ -87,7 +119,11 @@ public class DatabaseHandler{
 		return pIS;
 	}
 	
-	
+	/**
+	 * Fetches the mapdata located on the database.
+	 * @param id The id of the map which is to be fetched.
+	 * @return MapData containing the map which is fetched.
+	 */
 	public static MapData loadMap(int id){
 		ResultSet rs = db.query("SELECT * FROM maps WHERE map_id = '"+id+"'");
 		MapData mapData = null;
@@ -106,6 +142,11 @@ public class DatabaseHandler{
 		return mapData;
 	}
 	
+	/**
+	 * Saves a new map onto the database.
+	 * @param j A JSONObject which contains data regarding the new map.
+	 * @return A boolean if the map was successfully saved.
+	 */
 	public static boolean saveMap(JSONObject j){
 		ResultSet rs = db.query("SELECT * FROM maps WHERE map_name = '"+j.getString("MapName")+"'");
 			
