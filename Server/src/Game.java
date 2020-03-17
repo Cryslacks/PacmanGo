@@ -14,7 +14,7 @@ public class Game {
 	private Coordinate[] coins;
 	private int gameId;
 	private GameState gameState;
-	private int collisionRadius = 2;
+	private int collisionRadius = 4;
 	private ConnectionHandler ch;
 	private MapData map;
 	private PlayerType winner;
@@ -36,14 +36,24 @@ public class Game {
 	public JSONObject startGame(Player p, int mapId) {
 		JSONObject j = new JSONObject();
 		
+		if(this.gameState == GameState.InProgress) {
+			j.put("protocol", "START_GAME");
+			j.put("data", false);
+			return j;
+		}
+
 		if(p.getType() == PlayerType.Pacman) {
 			this.gameState = GameState.InProgress;
 			System.out.println("Game: Game has now started and is in progress");
+			JSONObject monsterJ = new JSONObject();
+			monsterJ.put("protocol", "MAP_DATA");
 			j.put("protocol", "MAP_DATA");
 			// GET MAP DATA from DatabaseHandler.loadMap()																//Need to add map ID;
 			this.map = DatabaseHandler.loadMap(mapId); 
-			j.put("data", this.map.toJSON().get("data"));
+			j.put("data", this.map.toJSON(true).get("data"));
+			monsterJ.put("data", this.map.toJSON(false).get("data"));
 			System.out.println("Sending MAP_DATA => \n\t"+j.toString());
+			
 			
 			if(ServerFunc.debugMode){
 				System.out.println(j.toString());
@@ -51,7 +61,7 @@ public class Game {
 			
 			for(int i = 0; i < this.players.size(); i++) {
 				if(!this.players.get(i).getName().equals(p.getName())) {
-					this.players.get(i).sendMapData(j);
+					this.players.get(i).sendMapData(monsterJ);
 				}
 			}
 		}else {
@@ -90,7 +100,7 @@ public class Game {
 		
 		Coordinate[] coins = this.map.getCoins();
 		for(int i = 0; i < coins.length; i++)
-			if(collisionDetection(p.getCoord(), coins[i]))
+			if(coins[i] != null && collisionDetection(p.getCoord(), coins[i]))
 				return i;
 
 		return -1;
@@ -109,10 +119,17 @@ public class Game {
 	}
 	
 	public boolean collisionDetection(Coordinate a, Coordinate b) {
-		double[] am = a.toMeters();
+		double dist = a.distanceToM(b);
+
+		if(dist < this.collisionRadius*2)
+			return true;
+
+		return false;
+
+/*		double[] am = a.toMeters();
 		double[] bm = b.toMeters();
 	
-		return (am[0]-bm[0]) * (am[0]-bm[0]) + (am[1]-bm[1]) * (am[1]-bm[1]) < (this.collisionRadius*2) * (this.collisionRadius*2);
+		return (am[0]-bm[0]) * (am[0]-bm[0]) + (am[1]-bm[1]) * (am[1]-bm[1]) < (this.collisionRadius*2) * (this.collisionRadius*2);*/
 	}
 	
 	public Coordinate[] updatePlayer(Player p) {
@@ -123,18 +140,20 @@ public class Game {
 			if(pId != i)
 				this.players.get(i).addUpdate(p);
 			
-		if(boundsDetection(p.getCoord())) 
+		if(boundsDetection(p.getCoord())) {
+			System.out.println("OUT OF BOUNDS");			
 			this.ruleBreak = "OUT_OF_BOUNDS";
-		
+		}
 		if(isAttacked(p)) {
 			this.gameState = GameState.Completed;
 			this.winner = PlayerType.Ghost;
 		}
 		
 		int coinCollected = isOnCoin(p);
-		if(coinCollected != -1)
+		if(coinCollected != -1) {
+			System.out.println("PICKED UP COIN NR: "+coinCollected);
 			this.remCoin = coinCollected;
-		
+		}
 		
 		if(pList.size() == 0)
 			return null;
@@ -142,7 +161,7 @@ public class Game {
 		Coordinate[] coords = new Coordinate[pList.size()];
 
 		for(int i = 0; i < pList.size(); i++)
-			if(pList.get(i) != null)
+			if(pList.get(i) != null && this.players.get(i) != null)
 				coords[i] = this.players.get(this.players.indexOf(pList.get(i))).getCoord();
 		
 		return coords;
@@ -191,9 +210,11 @@ public class Game {
 	
 	public int hasCollectedCoin() {
 		int temp = this.remCoin;
-
-		if(this.remCoin != -1)
+		
+		if(this.remCoin != -1) {
+			this.map.removeCoin(this.remCoin);
 			this.remCoin = -1;
+		}
 		
 		return temp;
 	}
