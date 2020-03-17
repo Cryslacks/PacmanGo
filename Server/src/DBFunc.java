@@ -2,7 +2,11 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
-
+/**
+ * Provides a connection between the Java server and the SQL database.
+ * @author David Eriksson
+ * @author Fredrik Lindahl
+ */
 
 public class DBFunc {
 	private String url = "jdbc:mysql://cryslacks.win:3306/pacmanGO";
@@ -10,6 +14,9 @@ public class DBFunc {
 	private String pWord = "racketkungen";
 	private Connection con;
 	private Statement state;
+	/**
+	 * Creates a new connection to the database.
+	 */
 	public DBFunc(){
 		try{
 			Class.forName("com.mysql.jdbc.Driver");  
@@ -22,7 +29,12 @@ public class DBFunc {
 			System.out.println(e);
 		}
 	}
-	
+
+	/**
+	 * Queries the provided SQL command against the SQL database.
+	 * @param query The string which contains the SQL query.
+	 * @return A resultset containing information gathered by the provided SQL query.
+	 */
 	public ResultSet query(String query) {
 		try {
 			if(query.toUpperCase().split("SELECT").length > 1){

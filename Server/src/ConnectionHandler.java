@@ -1,9 +1,5 @@
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
@@ -11,22 +7,27 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Base64;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import javafx.util.Pair;
-
+/** 
+ * Handles all connections an direct them to the corresponding methods of connection
+ * @author David Eriksson
+ * @author Fredrik Lindahl
+ */
 public class ConnectionHandler implements Runnable{
 	private Socket con;
 	private ServerSocket serverSocket;
 	private byte[] readIn;
 	private boolean isAlive = true;
 	private ArrayList<Game> games = new ArrayList<Game>();
-	
 	private JSONObject info;
-    
+   /** 
+    * Creates an connection on the specified port.
+    * @param port The port which the connection shall be established on.
+    */
 	public ConnectionHandler(int port){
 		try {
 			this.readIn = new byte[1024];
@@ -39,7 +40,9 @@ public class ConnectionHandler implements Runnable{
 			e.printStackTrace();
 		}
 	}
-	
+	/** 
+	 * This is the core of the class which directs all connection to the corresponding action.
+	 */
 	public void run() {
 		while(this.isAlive) {
 			try {
@@ -102,7 +105,6 @@ public class ConnectionHandler implements Runnable{
 						String[] names = new String[data.length];
 						Integer[] ids = new Integer[data.length];
 						for(int i = 0; i < data.length; i++) {
-//							System.out.println("\t i="+i+" => \n\t\tk="+data[i].getKey()+" v="+data[i].getValue());
 							names[i] = data[i].getValue();
 							ids[i] = data[i].getKey();
 						}
@@ -144,12 +146,19 @@ public class ConnectionHandler implements Runnable{
 			}
 		}
 	}
-	
+
+	/**
+	 * Removes the game when the game is finished or the lobby is empty.
+	 * @param g The game class which is to be removed.
+	 */
 	public void removeGame(Game g) {
 		System.out.println("Handler: Removing game <"+this.games.indexOf(g)+">");
 		this.games.remove(g);
 	}
 	
+	/**
+	 * Terminates the running thread causing the running server to close.
+	 */
 	public void terminate() {
 		this.isAlive = false;
 	}

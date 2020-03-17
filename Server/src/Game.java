@@ -8,7 +8,11 @@ import java.util.ArrayList;
 import org.json.JSONObject;
 
 import javafx.util.Pair;
-
+/**
+ * Represents a game on the server.
+ * @author David Eriksson
+ * @author Fredrik Lindahl
+ */
 public class Game {
 	private ArrayList<Player> players;
 	private Coordinate[] coins;
@@ -21,6 +25,14 @@ public class Game {
 	private int remCoin;
 	private String ruleBreak;
 	
+	/**
+	 * Creates a new game with the specified arguments.
+	 * @param ch The connection handler which the game has been called from.
+	 * @param gameId The id which the game has.
+	 * @param name The name of the first connected user.
+	 * @param ois The input stream of the first connected user.
+	 * @param oos The output stream of the first connected user.
+	 */
 	public Game(ConnectionHandler ch, int gameId, String name, InputStream ois, OutputStream oos) {
 		this.ch = ch;
 		this.gameState = GameState.Lobby;
@@ -33,6 +45,12 @@ public class Game {
 		this.ruleBreak = "";
 	}
 	
+	/**
+	 * Starts the game on a specified map if the player is pacman.
+	 * @param p The player which is attempting to start the game.
+	 * @param mapId The map which the game shall be played on.
+	 * @return The data provided from the map chosen.
+	 */
 	public JSONObject startGame(Player p, int mapId) {
 		JSONObject j = new JSONObject();
 		
@@ -72,17 +90,30 @@ public class Game {
 		return j;
 	}
 	
+	/**
+	 * Checks if the game is completed or is running currently.
+	 * @return If the game is completed returns the type which won.
+	 */
 	public int isCompleted() {
 		if(this.gameState != GameState.Completed)
 			return 0;
 		
 		return this.winner == PlayerType.Pacman ? 1 : 2;
 	}
-
+	
+	/**
+	 * Checks if the state of the game is in progress.
+	 * @return Returns true if in progress otherwise false.
+	 */
 	public boolean inProgress() {
 		return this.gameState == GameState.InProgress;
 	}
 	
+	/**
+	 * Checks if the player is on any edge.
+	 * @param player The coordinates of the player which is to be checked.
+	 * @return Returns true if the player is out of bounds.
+	 */
 	public boolean boundsDetection(Coordinate player) {
 		Edge[] edges = this.map.getEdgeList();
 		
@@ -94,6 +125,11 @@ public class Game {
 		return true;
 	}
 	
+	/**
+	 * Checks if a specified player is standing on a coin.
+	 * @param p The player to be checked.
+	 * @return Returns the coin id if the player is standing on a coin, otherwise -1.
+	 */
 	public int isOnCoin(Player p) {
 		if(p.getType() != PlayerType.Pacman)
 			return -1;
@@ -106,6 +142,11 @@ public class Game {
 		return -1;
 	}
 	
+	/**
+	 * Checks if pacman is attacked by one of the ghosts.
+	 * @param p The player to be checked.
+	 * @return Returns true if the player is standing on a ghost.
+	 */
 	public boolean isAttacked(Player p) {
 		if(p.getType() != PlayerType.Pacman) 
 			return false;
@@ -118,6 +159,12 @@ public class Game {
 		return false;
 	}
 	
+	/**
+	 * Checks if two coordinates collides with each other.
+	 * @param a The first coordinate.
+	 * @param b The second coordinate.
+	 * @return Boolean of which the two coordinates collides or not.
+	 */
 	public boolean collisionDetection(Coordinate a, Coordinate b) {
 		double dist = a.distanceToM(b);
 
@@ -125,13 +172,13 @@ public class Game {
 			return true;
 
 		return false;
-
-/*		double[] am = a.toMeters();
-		double[] bm = b.toMeters();
-	
-		return (am[0]-bm[0]) * (am[0]-bm[0]) + (am[1]-bm[1]) * (am[1]-bm[1]) < (this.collisionRadius*2) * (this.collisionRadius*2);*/
 	}
 	
+	/**
+	 * Updates the specified player and tells the other players that this player has updated.
+	 * @param p The player which is getting updated.
+	 * @return A list of all the players which the provided player has outdated coordinates of.
+	 */
 	public Coordinate[] updatePlayer(Player p) {
 		int pId = this.players.indexOf(p);
 		ArrayList<Player> pList = p.getUpdate();
@@ -167,6 +214,13 @@ public class Game {
 		return coords;
 	}
 	
+	/**
+	 * Adds a new player into the game.
+	 * @param name The name of the player.
+	 * @param ois The input stream of the player.
+	 * @param oos The output stream of the player.
+	 * @return Boolean of if the action was permitted or the lobby was full.
+	 */
 	public boolean addPlayer(String name, InputStream ois, OutputStream oos) {
 		if(this.players.size() >= 5)
 			return false;
@@ -180,6 +234,10 @@ public class Game {
 		return true;
 	}
 	
+	/**
+	 * Removes a player from the current game.
+	 * @param p The player which is suppose to be removed
+	 */
 	public void removePlayer(Player p) {
 		boolean changeHost = p.getType() == PlayerType.Pacman;
 		String name = this.players.get(this.players.indexOf(p)).getName();
@@ -199,6 +257,10 @@ public class Game {
 			players.get(i).lobbyUpdate(name, false);
 	}
 	
+	/**
+	 * Gets all the player names within the current game.
+	 * @return String list of all the player names.
+	 */
 	public String[] getPlayers() {
 		String[] names = new String[this.players.size()];
 		for(int i = 0; i < this.players.size(); i++) {
@@ -208,6 +270,10 @@ public class Game {
 		return names;
 	}
 	
+	/**
+	 * Checks if a coin has been collected since last collision check.
+	 * @return The coin id if a coin has been collected.
+	 */
 	public int hasCollectedCoin() {
 		int temp = this.remCoin;
 		
@@ -219,6 +285,10 @@ public class Game {
 		return temp;
 	}
 	
+	/**
+	 * Checks if a rule has been broken since last collision check.
+	 * @return The rule which has been broken.
+	 */
 	public String hasBrokenRule() {
 		String temp = this.ruleBreak;
 		
