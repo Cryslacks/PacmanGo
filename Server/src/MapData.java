@@ -62,7 +62,7 @@ public class MapData {
 			JSONArray row = adjencyMatrix.getJSONArray(i);
 			this.oldAdj[i] = new int[row.length()];
 			for(int c = 0; c < row.length(); c++) {
-				/*if(i == row.getInt(c))      Fråga inte varför detta är utkommenterat, det är svårt att läsa en api.
+				/*if(i == row.getInt(c))      Frï¿½ga inte varfï¿½r detta ï¿½r utkommenterat, det ï¿½r svï¿½rt att lï¿½sa en api.
 					continue;*/
 				this.oldAdj[i][c] = row.getInt(c);
 				this.adjMat[i][row.getInt(c)] = 1;
@@ -107,6 +107,9 @@ public class MapData {
 				this.coinList[currCoin] = curr;
 				currCoin++;
 			}
+
+/*			for(int c = 0; c < Math.floor(a.distanceTo(b)/5); c++) {
+			}*/
 		}
 		
 		System.out.println("[MapData] Adding the last "+this.posList.length+" coins on each node!");
