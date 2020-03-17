@@ -6,6 +6,7 @@ import javafx.util.Pair;
 public class MapData {
 	private Edge[] edgeList;
 	private Coordinate[] posList;
+	private int distCoin = 50;
 	private int[][]	adjMat;
 	private int[][] oldAdj;
 	private Coordinate[] coinList;
@@ -45,8 +46,8 @@ public class MapData {
 			JSONArray row = adjencyMatrix.getJSONArray(i);
 			this.oldAdj[i] = new int[row.length()];
 			for(int c = 0; c < row.length(); c++) {
-				if(i == row.getInt(c))
-					continue;
+				/*if(i == row.getInt(c))      Fråga inte varför detta är utkommenterat, det är svårt att läsa en api.
+					continue;*/
 				this.oldAdj[i][c] = row.getInt(c);
 				this.adjMat[i][row.getInt(c)] = 1;
 				this.verts++;
@@ -62,7 +63,7 @@ public class MapData {
 			for(int c = 0; c < this.adjMat.length; c++) {
 				if(this.adjMat[i][c] == 1) {
 					this.edgeList[vertNr] = new Edge(posList[i], posList[c]);
-					this.coins += Math.floor(posList[i].distanceTo(posList[c])/5);
+					this.coins += Math.floor(posList[i].distanceToM(posList[c])/this.distCoin);
 					vertNr++;
 				}
 			}
@@ -74,20 +75,22 @@ public class MapData {
 	private void setupCoins() {
 		this.coinList = new Coordinate[this.coins];
 		int currCoin = 0;
-		
+		System.out.println("[MapData] Coins to be generated: "+this.coins);
 		for(int i = 0; i < this.edgeList.length; i++) {
 			Coordinate a = this.edgeList[i].getKey();
 			Coordinate b = this.edgeList[i].getValue();
-			
-			for(int c = 0; c < Math.floor(a.distanceTo(b)/5); c++) {
-				Coordinate[] coords = generateCoins(a, b, 15);
-				for (Coordinate curr : coords) {
-					this.coinList[currCoin] = curr;
-					currCoin++;
-				}
+
+			Coordinate[] coords = generateCoins(a, b, this.distCoin);
+			for (Coordinate curr : coords) {
+				this.coinList[currCoin] = curr;
+				currCoin++;
 			}
+
+/*			for(int c = 0; c < Math.floor(a.distanceTo(b)/5); c++) {
+			}*/
 		}
 		
+		System.out.println("[MapData] Adding the last "+this.posList.length+" coins on each node!");
 		for(int i = 0; i < this.posList.length; i++) {
 			this.coinList[currCoin] = this.posList[i];
 			currCoin++;
@@ -123,7 +126,11 @@ public class MapData {
 		return this.coinList;
 	}
 
-	public JSONObject toJSON() {
+	public void removeCoin(int id) {
+		this.coinList[id] = null;
+	}
+	
+	public JSONObject toJSON(boolean pacman) {
 		JSONObject a = new JSONObject();
 		
 		a.append("data", this.oldAdj);
@@ -135,13 +142,16 @@ public class MapData {
 			
 		a.append("data", b);
 
-		b = new double[this.coinList.length][2];
-		for(int i = 0; i < b.length; i++) {
-			b[i][0] = this.coinList[i].getCoord()[0];
-			b[i][1] = this.coinList[i].getCoord()[1];
-		}
-			
-		a.append("data", b);
+		if(pacman) {
+			b = new double[this.coinList.length][2];
+			for(int i = 0; i < b.length; i++) {
+				b[i][0] = this.coinList[i].getCoord()[0];
+				b[i][1] = this.coinList[i].getCoord()[1];
+			}
+				
+			a.append("data", b);
+		}else
+			a.append("data", new int[0]);
 		
 		System.out.println(a.toString());
 		return a;
